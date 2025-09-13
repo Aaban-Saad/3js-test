@@ -128,8 +128,8 @@ export default function Home() {
         <Canvas shadows camera={{ position: [5, 5, 5], fov: 50 }}>
           <ambientLight intensity={0.7} color={'#e1c79d'}/>
           <directionalLight
-            position={[-14.5, 10, -3.5]}
-            intensity={2}
+            position={[-29, 20, -7]}
+            intensity={3}
             castShadow
             shadow-mapSize-width={2048}
             shadow-mapSize-height={2048}
@@ -139,6 +139,7 @@ export default function Home() {
             shadow-camera-right={20}
             shadow-camera-top={20}
             shadow-camera-bottom={-20}
+            shadow-bias={-0.005}
           />
           <Physics gravity={[0, -3.728, 0]}>
             <Ground />

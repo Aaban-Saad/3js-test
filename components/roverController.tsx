@@ -24,6 +24,10 @@ function RoverController() {
     const arm3 = useRef<any>(null);
     const arm4 = useRef<any>(null);
     const arm5 = useRef<any>(null);
+    const sus_fl = useRef<any>(null);
+    const sus_fr = useRef<any>(null);
+    const sus_rl = useRef<any>(null);
+    const sus_rr = useRef<any>(null);
 
     const wheelWorldPosition = new Vector3();
     const pointVelocity = new Vector3();
@@ -36,9 +40,9 @@ function RoverController() {
         const body = ref.current;
 
         const { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, w, a, s, d, q, e, i, k, j, l } = getKeys();
-        const factor = 1
-        const moveSpeed = 0.5 * factor;
-        const rotSpeed = 0.3 * factor;
+        const factor = 2
+        const moveSpeed = 50 * factor;
+        const rotSpeed = 30 * factor;
         const wheelRadius = 0.2625;
 
         // --- Movement and Steering (largely unchanged) ---
@@ -51,11 +55,18 @@ function RoverController() {
         forward.set(0, 0, 1).applyQuaternion(chassis_r);
 
         const impulse = { x: 0, y: 0, z: 0 };
-        if (ArrowUp) {
-            impulse.x += forward.x * moveSpeed;
-            impulse.z += forward.z * moveSpeed;
+        if (ArrowUp && !(ArrowLeft || ArrowRight)) {
+            if (sus_fl.current.rotation.y <= 0) {
+                sus_fl.current.rotation.y += 0.01;
+                sus_fr.current.rotation.y -= 0.01;
+                sus_rl.current.rotation.y -= 0.01;
+                sus_rr.current.rotation.y += 0.01;
+            } else {
+                impulse.x += forward.x * moveSpeed;
+                impulse.z += forward.z * moveSpeed;
+            }
         }
-        if (ArrowDown) {
+        if (ArrowDown && !(ArrowLeft || ArrowRight)) {
             impulse.x -= forward.x * moveSpeed;
             impulse.z -= forward.z * moveSpeed;
         }
@@ -67,30 +78,45 @@ function RoverController() {
 
         // Apply steering torque
         if (ArrowLeft) {
-            body.applyTorqueImpulse({ x: 0, y: rotSpeed * steeringDirection, z: 0 }, true);
-        }
-        if (ArrowRight) {
-            body.applyTorqueImpulse({ x: 0, y: -rotSpeed * steeringDirection, z: 0 }, true);
-        }
-
-        if (w) {
-            if (arm2.current && arm2.current.rotation.z < 1.3){
-                arm2.current.rotation.z += 0.02;
+            if (sus_fl.current.rotation.y > -Math.PI / 4) {
+                sus_fl.current.rotation.y -= 0.01;
+                sus_fr.current.rotation.y += 0.01;
+                sus_rl.current.rotation.y += 0.01;
+                sus_rr.current.rotation.y -= 0.01;
+            } else {
+                body.applyTorqueImpulse({ x: 0, y: rotSpeed * steeringDirection, z: 0 }, true);
             }
         }
-        if (s) {
-            if (arm2.current && arm2.current.rotation.z > -1.3) {
+        if (ArrowRight) {
+            if (sus_fl.current.rotation.y > -Math.PI / 4) {
+                sus_fl.current.rotation.y -= 0.01;
+                sus_fr.current.rotation.y += 0.01;
+                sus_rl.current.rotation.y += 0.01;
+                sus_rr.current.rotation.y -= 0.01;
+            } else {
+                body.applyTorqueImpulse({ x: 0, y: -rotSpeed * steeringDirection, z: 0 }, true);
+            }
+        }
+
+        console.log(arm2.current.rotation.z)
+        if (w) {
+            if (arm2.current && arm2.current.rotation.z > -(Math.PI / 2)) {
                 arm2.current.rotation.z -= 0.02;
             }
         }
+        if (s) {
+            if (arm2.current && arm2.current.rotation.z < (Math.PI / 2)) {
+                arm2.current.rotation.z += 0.02;
+            }
+        }
         if (i) {
-            if (arm3.current && arm3.current.rotation.z < -.3) {
-                arm3.current.rotation.z += 0.02;
+            if (arm3.current) {
+                arm3.current.rotation.z -= 0.02;
             }
         }
         if (k) {
-            if (arm3.current && arm3.current.rotation.z > -5.7) {
-                arm3.current.rotation.z -= 0.02;
+            if (arm3.current) {
+                arm3.current.rotation.z += 0.02;
             }
         }
         if (a) {
@@ -104,14 +130,12 @@ function RoverController() {
             }
         }
         if (j) {
-            if (arm4.current  && arm4.current.rotation.z < 3.14) {
+            if (arm4.current && arm4.current.rotation.z < 3.14) {
                 arm4.current.rotation.z += 0.02;
             }
         }
-
-        console.log(arm4.current.rotation.z)
         if (l) {
-            if (arm4.current  && arm4.current.rotation.z > -1.0) {
+            if (arm4.current && arm4.current.rotation.z > -1.0) {
                 arm4.current.rotation.z -= 0.02;
             }
         }
@@ -127,7 +151,7 @@ function RoverController() {
         }
 
 
-    // --- keep rover at center of orbit ---
+        // --- keep rover at center of orbit ---
         if (orbitRef.current) {
             orbitRef.current.target.set(t.x, t.y + 1, t.z);
         }
@@ -187,20 +211,20 @@ function RoverController() {
             friction={0}
             linearDamping={10}
             angularDamping={10}
-            position={[0, 1, 1]}
+            position={[0, 1, 2]}
         >
-            <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} />
+            <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
             {/* Main body collider */}
-            <CuboidCollider args={[.7, 0.4, 1.1]} position={[0, 1.1, -0.3]} density={0.5} />
-            <CuboidCollider args={[.1, 0.1, .8]} position={[.3, .8, 1.5]} density={0.001} />
+            <CuboidCollider args={[.7, 0.4, 1.1]} position={[0, 1.1, -0.3]} mass={1000} />
+            <CuboidCollider args={[.1, 0.1, .8]} position={[.3, .8, 1.5]} />
 
             {/* Wheels (example positions – adjust to your model) */}
-            <BallCollider args={[0.3]} position={[-1.05, 0.3, 1.1]} density={3} />
-            <BallCollider args={[0.3]} position={[1.05, 0.3, 1.1]} density={3} />
-            <BallCollider args={[0.3]} position={[-1.15, 0.3, -0.1]} density={3} />
-            <BallCollider args={[0.3]} position={[1.15, 0.3, -0.1]} density={3} />
-            <BallCollider args={[0.3]} position={[-1.05, 0.3, -1.2]} density={3} />
-            <BallCollider args={[0.3]} position={[1.05, 0.3, -1.2]} density={3} />
+            <BallCollider args={[0.3]} position={[-1.05, 0.3, 1.1]} />
+            <BallCollider args={[0.3]} position={[1.05, 0.3, 1.1]} />
+            <BallCollider args={[0.3]} position={[-1.15, 0.3, -0.1]} />
+            <BallCollider args={[0.3]} position={[1.15, 0.3, -0.1]} />
+            <BallCollider args={[0.3]} position={[-1.05, 0.3, -1.2]} />
+            <BallCollider args={[0.3]} position={[1.05, 0.3, -1.2]} />
 
             <OrbitControls
                 ref={orbitRef}
