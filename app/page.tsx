@@ -141,11 +141,12 @@ export default function Home() {
             shadow-camera-bottom={-20}
             shadow-bias={-0.005}
           />
-          <Physics gravity={[0, -3.728, 0]}>
+          <Physics gravity={[0, -3.728, 0]} >
             <Ground />
             {/* <Ball /> */}
             {/* <Obstacles /> */}
             <RoverController />
+            {/* <OrbitControls /> */}
           </Physics>
         </Canvas>
       </KeyboardControls>

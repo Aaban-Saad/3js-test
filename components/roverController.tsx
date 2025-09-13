@@ -1,10 +1,10 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { RigidBody, RapierRigidBody, CuboidCollider, CapsuleCollider, CylinderCollider, BallCollider } from "@react-three/rapier";
+import { RigidBody, RapierRigidBody, CuboidCollider, CapsuleCollider, CylinderCollider, BallCollider, useRevoluteJoint } from "@react-three/rapier";
 import { useRef } from "react";
 import { OrbitControls, useKeyboardControls } from "@react-three/drei";
 import { Rover } from "./rover.jsx";
-import { Quaternion, Vector3 } from "three";
-
+import { BoxGeometry, Quaternion, Vector3 } from "three";
+import JointData from "@react-three/rapier"
 
 function RoverController() {
     const ref = useRef<RapierRigidBody | null>(null);
@@ -67,8 +67,15 @@ function RoverController() {
             }
         }
         if (ArrowDown && !(ArrowLeft || ArrowRight)) {
-            impulse.x -= forward.x * moveSpeed;
-            impulse.z -= forward.z * moveSpeed;
+            if (sus_fl.current.rotation.y <= 0) {
+                sus_fl.current.rotation.y += 0.01;
+                sus_fr.current.rotation.y -= 0.01;
+                sus_rl.current.rotation.y -= 0.01;
+                sus_rr.current.rotation.y += 0.01;
+            } else {
+                impulse.x -= forward.x * moveSpeed;
+                impulse.z -= forward.z * moveSpeed;
+            }
         }
         if (impulse.x !== 0 || impulse.z !== 0) {
             body.applyImpulse(impulse, true);
@@ -202,8 +209,40 @@ function RoverController() {
         // camera.position.lerp(targetPos, 0.02);
         // camera.lookAt(t.x, t.y + 0.5, t.z);
     });
+    const bodyA = useRef<RapierRigidBody | null>(null);
+    const bodyB = useRef<RapierRigidBody | null>(null);
+
+    useRevoluteJoint(
+        bodyA as React.RefObject<RapierRigidBody>,
+        bodyB as React.RefObject<RapierRigidBody>,
+        [
+            [0, 0.5, 0],   // top face of base
+            [0, -0.5, 0],  // bottom face of arm
+            [0, 0, 1]      // hinge axis
+        ]
+    );
+
+
 
     return (
+        //   <>
+        //     {/* Base cube (moved up in air) */}
+        //     <RigidBody ref={bodyA} type="fixed" colliders="cuboid">
+        //       <mesh position={[0, 3, 0]}>
+        //         <boxGeometry args={[1, 1, 1]} />
+        //         <meshStandardMaterial color="red" />
+        //       </mesh>
+        //     </RigidBody>
+
+        //     {/* Top cube (hinged above base) */}
+        //     <RigidBody ref={bodyB} colliders="cuboid">
+        //       <mesh position={[.5, 4, .0]}>
+        //         <boxGeometry args={[1, 1, 1]} />
+        //         <meshStandardMaterial color="blue" />
+        //       </mesh>
+        //     </RigidBody>
+        //   </>
+
 
         <RigidBody
             ref={ref}
@@ -233,6 +272,8 @@ function RoverController() {
                 maxDistance={5}
             />
         </RigidBody>
+
+
     );
 }
 
