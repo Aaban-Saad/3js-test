@@ -41,7 +41,7 @@ function Ground() {
   const { nodes, materials } = useGLTF("/mars_one_mission_-_base.glb");
 
   return (
-    <RigidBody type="fixed" colliders={"trimesh"}>
+    <RigidBody type="fixed" colliders={"trimesh"} position={[0, -1, 0]}>
       <Mars />
 
       {/* <mesh position={[-2, 0.5, 2]} castShadow receiveShadow>

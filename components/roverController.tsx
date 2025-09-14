@@ -9,7 +9,6 @@ import JointData from "@react-three/rapier"
 function RoverController() {
     const ref = useRef<RapierRigidBody | null>(null);
     const [, getKeys] = useKeyboardControls();
-    const { camera } = useThree();
 
     const orbitRef = useRef<any>(null);
 
@@ -35,14 +34,18 @@ function RoverController() {
     const chassis_t = new Vector3();
     const chassis_r = new Quaternion();
 
+    function lerp(start: any, end: any, alpha: any) {
+        return start + (end - start) * alpha;
+    }
+
     useFrame((_, delta: number) => {
         if (!ref.current) return;
         const body = ref.current;
 
         const { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, w, a, s, d, q, e, i, k, j, l } = getKeys();
         const factor = 2
-        const moveSpeed = 50 * factor;
-        const rotSpeed = 30 * factor;
+        const moveSpeed = 60 * factor;
+        const rotSpeed = 20 * factor;
         const wheelRadius = 0.2625;
 
         // --- Movement and Steering (largely unchanged) ---
@@ -55,27 +58,29 @@ function RoverController() {
         forward.set(0, 0, 1).applyQuaternion(chassis_r);
 
         const impulse = { x: 0, y: 0, z: 0 };
-        if (ArrowUp && !(ArrowLeft || ArrowRight)) {
-            if (sus_fl.current.rotation.y <= 0) {
-                sus_fl.current.rotation.y += 0.01;
-                sus_fr.current.rotation.y -= 0.01;
-                sus_rl.current.rotation.y -= 0.01;
-                sus_rr.current.rotation.y += 0.01;
-            } else {
-                impulse.x += forward.x * moveSpeed;
-                impulse.z += forward.z * moveSpeed;
+        if (ArrowUp) {
+            if (!ArrowLeft && !ArrowRight) {
+                // Smoothly move each wheel's rotation back to 0
+                sus_fl.current.rotation.y = lerp(sus_fl.current.rotation.y, 0, .1);
+                sus_fr.current.rotation.y = lerp(sus_fr.current.rotation.y, 0, .1);
+                sus_rl.current.rotation.y = lerp(sus_rl.current.rotation.y, 0, .1);
+                sus_rr.current.rotation.y = lerp(sus_rr.current.rotation.y, 0, .1);
             }
+
+            impulse.x += forward.x * moveSpeed;
+            impulse.z += forward.z * moveSpeed;
         }
-        if (ArrowDown && !(ArrowLeft || ArrowRight)) {
-            if (sus_fl.current.rotation.y <= 0) {
-                sus_fl.current.rotation.y += 0.01;
-                sus_fr.current.rotation.y -= 0.01;
-                sus_rl.current.rotation.y -= 0.01;
-                sus_rr.current.rotation.y += 0.01;
-            } else {
-                impulse.x -= forward.x * moveSpeed;
-                impulse.z -= forward.z * moveSpeed;
+        if (ArrowDown) {
+            if (!ArrowLeft && !ArrowRight) {
+                // Smoothly move each wheel's rotation back to 0
+                sus_fl.current.rotation.y = lerp(sus_fl.current.rotation.y, 0, .1);
+                sus_fr.current.rotation.y = lerp(sus_fr.current.rotation.y, 0, .1);
+                sus_rl.current.rotation.y = lerp(sus_rl.current.rotation.y, 0, .1);
+                sus_rr.current.rotation.y = lerp(sus_rr.current.rotation.y, 0, .1);
             }
+            impulse.x -= forward.x * moveSpeed;
+            impulse.z -= forward.z * moveSpeed;
+
         }
         if (impulse.x !== 0 || impulse.z !== 0) {
             body.applyImpulse(impulse, true);
@@ -85,22 +90,43 @@ function RoverController() {
 
         // Apply steering torque
         if (ArrowLeft) {
-            if (sus_fl.current.rotation.y > -Math.PI / 4) {
-                sus_fl.current.rotation.y -= 0.01;
-                sus_fr.current.rotation.y += 0.01;
-                sus_rl.current.rotation.y += 0.01;
-                sus_rr.current.rotation.y -= 0.01;
+            if (!ArrowUp && !ArrowDown) {
+                if (sus_fl.current.rotation.y > -Math.PI / 4 || sus_fr.current.rotation.y < Math.PI / 4 || sus_rl.current.rotation.y < Math.PI / 4 || sus_rr.current.rotation.y > -Math.PI / 4) {
+                    if (sus_fl.current.rotation.y > -Math.PI / 4) sus_fl.current.rotation.y -= 0.01;
+                    if (sus_fr.current.rotation.y < Math.PI / 4) sus_fr.current.rotation.y += 0.01;
+                    if (sus_rl.current.rotation.y < Math.PI / 4) sus_rl.current.rotation.y += 0.01;
+                    if (sus_rr.current.rotation.y > -Math.PI / 4) sus_rr.current.rotation.y -= 0.01;
+                } else {
+                    body.applyTorqueImpulse({ x: 0, y: rotSpeed * steeringDirection * 1.5, z: 0 }, true);
+                }
             } else {
+
+                if (sus_fl.current.rotation.y < Math.PI / 4) sus_fl.current.rotation.y += 0.06;
+                if (sus_fr.current.rotation.y < Math.PI / 8) sus_fr.current.rotation.y += 0.03;
+                if (sus_rl.current.rotation.y > -Math.PI / 4) sus_rl.current.rotation.y -= 0.06;
+                if (sus_rr.current.rotation.y > -Math.PI / 8) sus_rr.current.rotation.y -= 0.03;
+
                 body.applyTorqueImpulse({ x: 0, y: rotSpeed * steeringDirection, z: 0 }, true);
             }
         }
+
         if (ArrowRight) {
-            if (sus_fl.current.rotation.y > -Math.PI / 4) {
-                sus_fl.current.rotation.y -= 0.01;
-                sus_fr.current.rotation.y += 0.01;
-                sus_rl.current.rotation.y += 0.01;
-                sus_rr.current.rotation.y -= 0.01;
+            if (!ArrowUp && !ArrowDown) {
+                if (sus_fl.current.rotation.y > -Math.PI / 4 || sus_fr.current.rotation.y < Math.PI / 4 || sus_rl.current.rotation.y < Math.PI / 4 || sus_rr.current.rotation.y > -Math.PI / 4) {
+                    if (sus_fl.current.rotation.y > -Math.PI / 4) sus_fl.current.rotation.y -= 0.01;
+                    if (sus_fr.current.rotation.y < Math.PI / 4) sus_fr.current.rotation.y += 0.01;
+                    if (sus_rl.current.rotation.y < Math.PI / 4) sus_rl.current.rotation.y += 0.01;
+                    if (sus_rr.current.rotation.y > -Math.PI / 4) sus_rr.current.rotation.y -= 0.01;
+                } else {
+                    body.applyTorqueImpulse({ x: 0, y: -rotSpeed * steeringDirection * 1.5, z: 0 }, true);
+                }
             } else {
+
+                if (sus_fl.current.rotation.y > -Math.PI / 8) sus_fl.current.rotation.y -= 0.03;
+                if (sus_fr.current.rotation.y > -Math.PI / 4) sus_fr.current.rotation.y -= 0.06;
+                if (sus_rl.current.rotation.y < Math.PI / 8) sus_rl.current.rotation.y += 0.03;
+                if (sus_rr.current.rotation.y < Math.PI / 4) sus_rr.current.rotation.y += 0.06;
+
                 body.applyTorqueImpulse({ x: 0, y: -rotSpeed * steeringDirection, z: 0 }, true);
             }
         }
@@ -197,30 +223,19 @@ function RoverController() {
             wheelRef.current.rotation.x += wheelRotation;
         });
 
-
-
-
-        // 📷 Camera follow
-        // const roverQuat = new Quaternion(r.x, r.y, r.z, r.w);
-        // const localOffset = new Vector3(0, 3.5, -7);
-        // const rotatedOffset = localOffset.clone().applyQuaternion(roverQuat);
-        // const targetPos = new Vector3(t.x, t.y, t.z).add(rotatedOffset);
-
-        // camera.position.lerp(targetPos, 0.02);
-        // camera.lookAt(t.x, t.y + 0.5, t.z);
     });
-    const bodyA = useRef<RapierRigidBody | null>(null);
-    const bodyB = useRef<RapierRigidBody | null>(null);
 
-    useRevoluteJoint(
-        bodyA as React.RefObject<RapierRigidBody>,
-        bodyB as React.RefObject<RapierRigidBody>,
-        [
-            [0, 0.5, 0],   // top face of base
-            [0, -0.5, 0],  // bottom face of arm
-            [0, 0, 1]      // hinge axis
-        ]
-    );
+    // const bodyB = useRef<RapierRigidBody | null>(null);
+
+    // useRevoluteJoint(
+    //     ref as React.RefObject<RapierRigidBody>,
+    //     bodyB as React.RefObject<RapierRigidBody>,
+    //     [
+    //         [0, 0, 0], // Anchor point on the main rover body (ref)
+    //         [0, 0, 0],    // Anchor point on the blue box (bodyB)
+    //         [1, 0, 0]       // The axis of rotation
+    //     ]
+    // );
 
 
 
@@ -236,47 +251,59 @@ function RoverController() {
 
         //     {/* Top cube (hinged above base) */}
         //     <RigidBody ref={bodyB} colliders="cuboid">
-        //       <mesh position={[.5, 4, .0]}>
+        //       <mesh position={[.5, 4, .5]}>
         //         <boxGeometry args={[1, 1, 1]} />
         //         <meshStandardMaterial color="blue" />
         //       </mesh>
         //     </RigidBody>
         //   </>
 
+        <>
+            <RigidBody
+                ref={ref}
+                colliders={false}
+                friction={0}
+                linearDamping={10}
+                angularDamping={10}
+                position={[0, 0, 3]}
+            >
+                <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
+                {/* Main body collider */}
+                <CuboidCollider args={[.7, 0.4, 1.1]} position={[0, 1.1, -0.3]} mass={1000} />
+                <CuboidCollider args={[.1, 0.1, .8]} position={[.3, .8, 1.5]} />
 
-        <RigidBody
-            ref={ref}
-            colliders={false}
-            friction={0}
-            linearDamping={10}
-            angularDamping={10}
-            position={[0, 1, 2]}
-        >
-            <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
-            {/* Main body collider */}
-            <CuboidCollider args={[.7, 0.4, 1.1]} position={[0, 1.1, -0.3]} mass={1000} />
-            <CuboidCollider args={[.1, 0.1, .8]} position={[.3, .8, 1.5]} />
+                {/* Wheels (example positions – adjust to your model) */}
+                <BallCollider args={[0.3]} position={[-1.05, 0.3, 1.1]} />
+                <BallCollider args={[0.3]} position={[1.05, 0.3, 1.1]} />
+                <BallCollider args={[0.3]} position={[-1.15, 0.3, -0.1]} />
+                <BallCollider args={[0.3]} position={[1.15, 0.3, -0.1]} />
+                <BallCollider args={[0.3]} position={[-1.05, 0.3, -1.2]} />
+                <BallCollider args={[0.3]} position={[1.05, 0.3, -1.2]} />
 
-            {/* Wheels (example positions – adjust to your model) */}
-            <BallCollider args={[0.3]} position={[-1.05, 0.3, 1.1]} />
-            <BallCollider args={[0.3]} position={[1.05, 0.3, 1.1]} />
-            <BallCollider args={[0.3]} position={[-1.15, 0.3, -0.1]} />
-            <BallCollider args={[0.3]} position={[1.15, 0.3, -0.1]} />
-            <BallCollider args={[0.3]} position={[-1.05, 0.3, -1.2]} />
-            <BallCollider args={[0.3]} position={[1.05, 0.3, -1.2]} />
+                <OrbitControls
+                    ref={orbitRef}
+                    enablePan={false}
+                    minDistance={3}
+                    maxDistance={5}
+                />
+            </RigidBody>
+            {/* <RigidBody ref={bodyB} colliders="cuboid" mass={.1}>
+                <group>
+                    <mesh position={[0, 0.3, .5]} castShadow receiveShadow>
+                        <boxGeometry args={[.4, .4, .4]} />
+                        <meshStandardMaterial color="blue" />
+                    </mesh>
 
-            <OrbitControls
-                ref={orbitRef}
-                enablePan={false}
-                minDistance={3}
-                maxDistance={5}
-            />
-        </RigidBody>
+                    <mesh position={[0, 0.3, -.5]} castShadow receiveShadow>
+                        <boxGeometry args={[.4, .4, .4]} />
+                        <meshStandardMaterial color="blue" />
+                    </mesh>
+                </group>
+            </RigidBody> */}
 
-
+        </>
     );
 }
 
 export default RoverController;
-
 
