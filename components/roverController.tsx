@@ -6,8 +6,8 @@ import { Rover } from "./rover.jsx";
 import { BoxGeometry, Quaternion, Vector3 } from "three";
 import JointData from "@react-three/rapier"
 
-function RoverController() {
-    const ref = useRef<RapierRigidBody | null>(null);
+function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null> }) {
+    // const ref = useRef<RapierRigidBody | null>(null);
     const [, getKeys] = useKeyboardControls();
 
     const orbitRef = useRef<any>(null);
@@ -43,9 +43,9 @@ function RoverController() {
         const body = ref.current;
 
         const { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, w, a, s, d, q, e, i, k, j, l } = getKeys();
-        const factor = 2
+        const factor = 20  // 2 default
         const moveSpeed = 60 * factor;
-        const rotSpeed = 20 * factor;
+        const rotSpeed = 10 * factor;
         const wheelRadius = 0.2625;
 
         // --- Movement and Steering (largely unchanged) ---
@@ -265,7 +265,7 @@ function RoverController() {
                 friction={0}
                 linearDamping={10}
                 angularDamping={10}
-                position={[0, 0, 3]}
+                position={[0, 7, 3]}
             >
                 <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
                 {/* Main body collider */}
@@ -285,6 +285,7 @@ function RoverController() {
                     enablePan={false}
                     minDistance={3}
                     maxDistance={5}
+                    maxPolarAngle={Math.PI / 1.9}
                 />
             </RigidBody>
             {/* <RigidBody ref={bodyB} colliders="cuboid" mass={.1}>

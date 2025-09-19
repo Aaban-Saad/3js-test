@@ -1,109 +1,78 @@
 "use client";
 
-import { Canvas } from "@react-three/fiber";
-import { KeyboardControls, OrbitControls, useGLTF } from "@react-three/drei";
-import { CuboidCollider, Physics, RigidBody } from "@react-three/rapier";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { KeyboardControls, OrbitControls } from "@react-three/drei";
+import { Physics, RapierRigidBody, RigidBody } from "@react-three/rapier";
 import { Mars } from "@/components/mars.jsx"
 
-import Ball from "@/components/ball";
 import RoverController from "@/components/roverController";
-import { MeshCollider } from "@react-three/rapier";
-import { Mesh } from "three";
+import { useEffect, useRef, useState } from "react";
+import { invalidate } from "@react-three/fiber";
+import { DirectionalLight } from "three";
 
 
+function Ground() {
 
-function Obstacles() {
   return (
-    <>
-      <RigidBody type="fixed">
-        <mesh position={[2, 0.5, -2]} castShadow receiveShadow>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="red" />
-        </mesh>
-      </RigidBody>
-      <RigidBody type="fixed">
-        <mesh position={[-2, 0.5, 2]} castShadow receiveShadow>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="blue" />
-        </mesh>
-      </RigidBody>
-      <RigidBody type="fixed">
-        <mesh position={[0, 0.5, 4]} castShadow receiveShadow>
-          <boxGeometry args={[2, 1, 1]} />
-          <meshStandardMaterial color="green" />
-        </mesh>
-      </RigidBody>
-    </>
+    <RigidBody type="fixed" colliders={"trimesh"} position={[0, -275, 0]}>
+      <Mars />
+    </RigidBody>
   );
 }
 
-function Ground() {
-  const { nodes, materials } = useGLTF("/mars_one_mission_-_base.glb");
+function SunLight({ targetRef }: { targetRef: any }) {
+  const lightRef = useRef<DirectionalLight>(null);
+
+  useFrame(() => {
+    if (lightRef.current && targetRef.current) {
+      const roverPos = targetRef.current.translation(); // rapier gives {x,y,z}
+      // Keep sun offset but always follow rover
+      lightRef.current.position.set(
+        roverPos.x - 19,
+        roverPos.y + 20,
+        roverPos.z - 7
+      );
+      lightRef.current.target.position.set(roverPos.x, roverPos.y, roverPos.z);
+      lightRef.current.target.updateMatrixWorld();
+    }
+  });
 
   return (
-    <RigidBody type="fixed" colliders={"trimesh"} position={[0, -1, 0]}>
-      <Mars />
-
-      {/* <mesh position={[-2, 0.5, 2]} castShadow receiveShadow>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="blue" />
-      </mesh> */}
-
-      {/* <MeshCollider type="trimesh">
-        <group rotation={[-Math.PI / 2, 0, 0]} scale={0.02}>
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_11 as Mesh).geometry}
-            material={materials.material_9}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_10 as Mesh).geometry}
-            material={materials.material_8}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_8 as Mesh).geometry}
-            material={materials.material_6}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_9 as Mesh).geometry}
-            material={materials.material_7}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_12 as Mesh).geometry}
-            material={materials.material_10}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_7 as Mesh).geometry}
-            material={materials.material_5}
-          />
-          <mesh
-            castShadow
-            receiveShadow
-            geometry={(nodes.Object_3 as Mesh).geometry}
-            material={materials.material_1}
-          />
-        </group>
-      </MeshCollider> */}
-
-
-    </RigidBody>
+    <directionalLight
+      ref={lightRef}
+      intensity={3}
+      castShadow
+      shadow-mapSize-width={2048}
+      shadow-mapSize-height={2048}
+      shadow-camera-near={1}
+      shadow-camera-far={50}
+      shadow-camera-left={-20}
+      shadow-camera-right={20}
+      shadow-camera-top={20}
+      shadow-camera-bottom={-20}
+      shadow-bias={-0.005}
+    />
   );
+}
+
+// New component to handle position updates inside the Canvas
+function RoverPositionUpdater({ roverRef, onPositionUpdate }: { roverRef: any, onPositionUpdate: any }) {
+  useFrame(() => {
+    if (roverRef.current) {
+      const { x, y, z } = roverRef.current.translation();
+      onPositionUpdate({ x, y, z });
+    }
+  });
+  return null;
 }
 
 
 
 export default function Home() {
+
+  const roverRef = useRef<RapierRigidBody | null>(null);
+  const [roverPosition, setRoverPosition] = useState({ x: 0, y: 0, z: 0 });
+
   return (
     <div className="w-screen h-screen bg-orange-200">
       <KeyboardControls
@@ -125,30 +94,28 @@ export default function Home() {
         ]}
       >
 
-        <Canvas shadows camera={{ position: [5, 5, 5], fov: 50 }}>
-          <ambientLight intensity={0.7} color={'#e1c79d'}/>
-          <directionalLight
-            position={[-29, 20, -7]}
-            intensity={3}
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-near={1}
-            shadow-camera-far={50}
-            shadow-camera-left={-20}
-            shadow-camera-right={20}
-            shadow-camera-top={20}
-            shadow-camera-bottom={-20}
-            shadow-bias={-0.005}
-          />
-          <Physics gravity={[0, -3.728, 0]} >
+        <Canvas shadows camera={{ position: [5, 5, 5], fov: 50 }} dpr={[0.5, 1]}>
+          <ambientLight intensity={0.7} color={'#e1c79d'} />
+
+          <SunLight targetRef={roverRef} />
+
+          <Physics gravity={[0, -37.28, 0]}>
             <Ground />
-            {/* <Ball /> */}
-            {/* <Obstacles /> */}
-            <RoverController />
+            <RoverController ref={roverRef}/>
+            <RoverPositionUpdater
+              roverRef={roverRef}
+              onPositionUpdate={setRoverPosition}
+            />
             {/* <OrbitControls /> */}
           </Physics>
         </Canvas>
+
+         {/* Overlay UI to display the position */}
+        <div className="absolute top-4 left-4 p-4 rounded-lg text-white bg-black bg-opacity-50 font-mono text-sm">
+          <p>X: {roverPosition.x.toFixed(2)}</p>
+          <p>Y: {roverPosition.y.toFixed(2)}</p>
+          <p>Z: {roverPosition.z.toFixed(2)}</p>
+        </div>
       </KeyboardControls>
     </div>
   );
