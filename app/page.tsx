@@ -9,12 +9,13 @@ import RoverController from "@/components/roverController";
 import { useRef, useState } from "react";
 import { DirectionalLight, Vector3 } from "three";
 import { MoveDown, MoveLeft, MoveRight, MoveUp } from "lucide-react";
+import { ChatBar, SheetDemo } from "@/components/sidebar";
 
 
 function Ground() {
 
   return (
-    <RigidBody type="fixed" colliders={"trimesh"} position={[0, -275, 0]}>
+    <RigidBody type="fixed" colliders={"trimesh"} position={[0, -275, 0]} rotation={[0, Math.PI, 0]}>
       <Mars />
     </RigidBody>
   );
@@ -29,7 +30,7 @@ function SunLight({ targetRef }: { targetRef: any }) {
     if (lightRef.current && targetRef.current) {
       const roverPos = targetRef.current.translation();
       const lightPos = new Vector3(
-        roverPos.x - 29,
+        roverPos.x - 10,
         roverPos.y + 15,
         roverPos.z - 7
       );
@@ -44,10 +45,10 @@ function SunLight({ targetRef }: { targetRef: any }) {
     <>
       <directionalLight
         ref={lightRef}
-        intensity={3}
+        intensity={2}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={448}
+        shadow-mapSize-height={448}
         shadow-camera-near={1}
         shadow-camera-far={50}
         shadow-camera-left={-20}
@@ -110,7 +111,7 @@ export default function Home() {
             size={.5}
             height={0.1}
             curveSegments={12}
-            position={[-3, 4.5, 3]} // Position it slightly above the ground
+            position={[-3.3, 4.5, 2.7]} // Position it slightly above the ground
             rotation={[0, Math.PI / 2, 0]}
           // castShadow
           >
@@ -136,14 +137,19 @@ export default function Home() {
           <p>Z:{roverPosition.z.toFixed(2)}</p>
         </div>
 
+
         {/* keyboard controls */}
-        <div className="absolute bottom-2 right-2 flex flex-col items-center justify-center gap-2 opacity-30">
-          <div className="bg-black w-10 h-10 flex items-center justify-center"><MoveUp /></div>
+        <div className="absolute bottom-2 left-2 flex flex-col items-center justify-center gap-2 opacity-30 scale-75">
+          <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveUp /></div>
           <div className="flex items-center gap-2">
-            <div className="bg-black w-10 h-10 flex items-center justify-center"><MoveLeft /></div>
-            <div className="bg-black w-10 h-10 flex items-center justify-center"><MoveDown /></div>
-            <div className="bg-black w-10 h-10 flex items-center justify-center"><MoveRight /></div>
+            <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveLeft /></div>
+            <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveDown /></div>
+            <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveRight /></div>
           </div>
+        </div>
+
+        <div className="absolute bottom-4 flex flex-col items-center justify-center gap-2 w-full">
+          <ChatBar />
         </div>
       </KeyboardControls>
     </div>

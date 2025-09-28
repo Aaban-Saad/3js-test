@@ -265,7 +265,7 @@ function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null>
                 friction={0}
                 linearDamping={10}
                 angularDamping={10}
-                position={[0, 3.5, 0]}
+                position={[0, 3.8, 0]}
             >
                 <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
                 {/* Main body collider */}
