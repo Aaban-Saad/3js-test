@@ -9,7 +9,7 @@ import RoverController from "@/components/roverController";
 import { useRef, useState } from "react";
 import { DirectionalLight, Vector3 } from "three";
 import { MoveDown, MoveLeft, MoveRight, MoveUp } from "lucide-react";
-import { ChatBar, SheetDemo } from "@/components/sidebar";
+import { ChatBar } from "@/components/sidebar";
 
 
 function Ground() {
@@ -139,14 +139,14 @@ export default function Home() {
 
 
         {/* keyboard controls */}
-        <div className="absolute bottom-2 left-2 flex flex-col items-center justify-center gap-2 opacity-30 scale-75">
+        {/* <div className="absolute bottom-2 left-2 flex flex-col items-center justify-center gap-2 opacity-30 scale-75">
           <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveUp /></div>
           <div className="flex items-center gap-2">
             <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveLeft /></div>
             <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveDown /></div>
             <div className="bg-black w-10 h-10 flex items-center justify-center text-white"><MoveRight /></div>
           </div>
-        </div>
+        </div> */}
 
         <div className="absolute bottom-4 flex flex-col items-center justify-center gap-2 w-full">
           <ChatBar />
