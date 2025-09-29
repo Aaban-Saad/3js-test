@@ -8,9 +8,10 @@ import { Mars } from "@/components/mars.jsx"
 import RoverController from "@/components/roverController";
 import { useRef, useState } from "react";
 import { DirectionalLight, Vector3 } from "three";
-import { MoveDown, MoveLeft, MoveRight, MoveUp } from "lucide-react";
+import { MapPin, MoveDown, MoveLeft, MoveRight, MoveUp, PointerIcon } from "lucide-react";
 import { ChatBar } from "@/components/sidebar";
 import Info from "@/components/info";
+import Image from "next/image";
 
 
 function Ground() {
@@ -145,6 +146,22 @@ export default function Home() {
           <p>Z:{roverPosition.z.toFixed(2)}</p>
         </div>
 
+        <div className="absolute bottom-0 left-0 scale-[.25] hover:scale-[.75] transition-all duration-300">
+          <div className="h-[699px] w-[1322px] relative">
+            <span className={`fixed font-bold text-xl`}
+
+                style={{
+                  // Perform arithmetic directly on the 'top' and 'left' style properties.
+                  top: `${505 - roverPosition.z / 10}px`,
+                  left: `${1210 - roverPosition.x / 10}px`,
+                }}>
+
+              <MapPin/>
+              you are here
+            </span>
+            <Image src={'/map.webp'} height={699} width={1322} alt="map" />
+          </div>
+        </div>
 
         {/* keyboard controls */}
         {/* <div className="absolute bottom-2 left-2 flex flex-col items-center justify-center gap-2 opacity-30 scale-75">

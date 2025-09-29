@@ -43,7 +43,7 @@ function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null>
         const body = ref.current;
 
         const { ArrowUp, ArrowDown, ArrowLeft, ArrowRight, w, a, s, d, q, e, i, k, j, l } = getKeys();
-        const factor = 2  // 2 default
+        const factor = 20  // 2 default
         const moveSpeed = 60 * factor;
         const rotSpeed = 10 * factor;
         const wheelRadius = 0.2625;
