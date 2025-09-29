@@ -63,6 +63,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet"
 import { MessageCircle, Send, X } from "lucide-react"
+import { ScrollArea } from './ui/scroll-area'
 
 export function ChatBar() {
   const [message, setMessage] = useState('')
@@ -78,9 +79,9 @@ export function ChatBar() {
         text: message,
         sender: "user"
       }
-      
+
       setMessages(prev => [...prev, newMessage])
-      
+
       // Simulate assistant response
       setTimeout(() => {
         const assistantResponse = {
@@ -90,12 +91,12 @@ export function ChatBar() {
         }
         setMessages(prev => [...prev, assistantResponse])
       }, 1000)
-      
+
       setMessage('')
     }
   }
 
-  const handleKeyPress = (e:any) => {
+  const handleKeyPress = (e: any) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
@@ -110,33 +111,39 @@ export function ChatBar() {
           Ask anything
         </Button>
       </SheetTrigger>
-      <SheetContent className=" flex flex-col h-full bg-background/20 backdrop-blur-3xl border-l border-white/10 shadow-2xl">
+      <SheetContent className="flex flex-col h-full bg-background/20 backdrop-blur-3xl border-l border-white/10 shadow-2xl"
+        // onPointerDownOutside={(e) => {
+        //   e.preventDefault();
+        // }}
+      >
+
         <SheetHeader className="flex-shrink-0 bg-white/5 backdrop-blur-sm border-b border-white/10">
           <SheetTitle className="text-white font-medium text-lg">Mars Assistant</SheetTitle>
           <SheetDescription className="text-white/70 text-sm">
             Ask me anything about the Perseverance Rover and its findings.
           </SheetDescription>
         </SheetHeader>
-        
-        {/* Chat Messages Area */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0 scrollbar-hide">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+
+        <ScrollArea className='flex-1 min-h-0'>
+          {/* Chat Messages Area */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 min-h-0 scrollbar-hide">
+            {messages.map((msg) => (
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-3 backdrop-blur-md transition-all duration-200 ${
-                  msg.sender === 'user'
+                key={msg.id}
+                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-2xl px-4 py-3 backdrop-blur-md transition-all duration-200 ${msg.sender === 'user'
                     ? 'bg-blue-500/80 text-white shadow-lg shadow-blue-500/20'
                     : 'bg-white/10 text-white border border-white/20 shadow-lg'
-                }`}
-              >
-                <p className="text-sm leading-relaxed">{msg.text}</p>
+                    }`}
+                >
+                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </ScrollArea>
 
         {/* Chat Input Area */}
         <SheetFooter className="flex-shrink-0 p-4 bg-white/5 backdrop-blur-sm border-t border-white/10">
@@ -150,9 +157,9 @@ export function ChatBar() {
                 className="bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder:text-white/50 rounded-2xl px-4 py-3 focus:bg-white/15 focus:border-white/30 transition-all duration-200 shadow-lg"
               />
             </div>
-            <Button 
-              onClick={handleSendMessage} 
-              size="sm" 
+            <Button
+              onClick={handleSendMessage}
+              size="sm"
               className="bg-blue-500/80 hover:bg-blue-500 text-white border-0 rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg shadow-blue-500/20 transition-all duration-200"
             >
               <Send size={16} />

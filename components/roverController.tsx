@@ -101,9 +101,9 @@ function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null>
                 }
             } else {
 
-                if (sus_fl.current.rotation.y < Math.PI / 4) sus_fl.current.rotation.y += 0.06;
+                if (sus_fl.current.rotation.y < Math.PI / 5) sus_fl.current.rotation.y += 0.06;
                 if (sus_fr.current.rotation.y < Math.PI / 8) sus_fr.current.rotation.y += 0.03;
-                if (sus_rl.current.rotation.y > -Math.PI / 4) sus_rl.current.rotation.y -= 0.06;
+                if (sus_rl.current.rotation.y > -Math.PI / 5) sus_rl.current.rotation.y -= 0.06;
                 if (sus_rr.current.rotation.y > -Math.PI / 8) sus_rr.current.rotation.y -= 0.03;
 
                 body.applyTorqueImpulse({ x: 0, y: rotSpeed * steeringDirection, z: 0 }, true);
@@ -123,9 +123,9 @@ function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null>
             } else {
 
                 if (sus_fl.current.rotation.y > -Math.PI / 8) sus_fl.current.rotation.y -= 0.03;
-                if (sus_fr.current.rotation.y > -Math.PI / 4) sus_fr.current.rotation.y -= 0.06;
+                if (sus_fr.current.rotation.y > -Math.PI / 5) sus_fr.current.rotation.y -= 0.06;
                 if (sus_rl.current.rotation.y < Math.PI / 8) sus_rl.current.rotation.y += 0.03;
-                if (sus_rr.current.rotation.y < Math.PI / 4) sus_rr.current.rotation.y += 0.06;
+                if (sus_rr.current.rotation.y < Math.PI / 5) sus_rr.current.rotation.y += 0.06;
 
                 body.applyTorqueImpulse({ x: 0, y: -rotSpeed * steeringDirection, z: 0 }, true);
             }
@@ -266,6 +266,7 @@ function RoverController({ ref }: { ref: React.RefObject<RapierRigidBody | null>
                 linearDamping={10}
                 angularDamping={10}
                 position={[0 ,3.8, 0]}
+                rotation={[0, 0, 0]}
             >
                 <Rover fl={fl} fr={fr} ml={ml} mr={mr} rl={rl} rr={rr} arm1={arm1} arm2={arm2} arm3={arm3} arm4={arm4} arm5={arm5} sus_fl={sus_fl} sus_fr={sus_fr} sus_rl={sus_rl} sus_rr={sus_rr} />
                 {/* Main body collider */}

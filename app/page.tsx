@@ -10,6 +10,7 @@ import { useRef, useState } from "react";
 import { DirectionalLight, Vector3 } from "three";
 import { MoveDown, MoveLeft, MoveRight, MoveUp } from "lucide-react";
 import { ChatBar } from "@/components/sidebar";
+import Info from "@/components/info";
 
 
 function Ground() {
@@ -130,8 +131,15 @@ export default function Home() {
           </Physics>
         </Canvas>
 
+        <div className="absolute bottom-4 flex flex-col items-center justify-center gap-2 w-full">
+          <ChatBar />
+        </div>
         {/* Overlay UI to display the position */}
-        <div className="absolute text-xs top-2 left-2 p-2 rounded-lg text-white bg-black/50 bg-opacity-50 font-mono flex items-center gap-3">
+        <div className="absolute top-0 left-0">
+          <Info />
+        </div>
+
+        <div className="absolute top-2 right-2 h-fit w-fit text-xs p-2 rounded-lg text-white bg-black/50 bg-opacity-50 font-mono flex items-center gap-3">
           <p>X:{roverPosition.x.toFixed(2)}</p>
           <p>Y:{roverPosition.y.toFixed(2)}</p>
           <p>Z:{roverPosition.z.toFixed(2)}</p>
@@ -148,9 +156,6 @@ export default function Home() {
           </div>
         </div> */}
 
-        <div className="absolute bottom-4 flex flex-col items-center justify-center gap-2 w-full">
-          <ChatBar />
-        </div>
       </KeyboardControls>
     </div>
   );

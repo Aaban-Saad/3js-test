@@ -32,7 +32,7 @@ export default function RootLayout({
         disableTransitionOnChange
       >
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased select-none`}
         >
           {children}
         </body>
