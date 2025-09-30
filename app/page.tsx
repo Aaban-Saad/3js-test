@@ -15,6 +15,11 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 
+// Add target position
+let targetPosition = { x: -540, y: 0, z: 700 };
+// const targetPosition = { x: 0, y: 0, z: 0 };
+
+
 function Ground() {
 
   return (
@@ -89,9 +94,8 @@ function RoverPositionUpdater({ roverRef, onPositionUpdate, onRotationUpdate }: 
 }
 
 
-function DirectionIndicator({ currentPosition, targetPosition, roverRotation }: {
+function DirectionIndicator({ currentPosition, roverRotation }: {
   currentPosition: { x: number, y: number, z: number },
-  targetPosition: { x: number, y: number, z: number },
   roverRotation: any
 }) {
   // Calculate distance
@@ -160,10 +164,6 @@ export default function Home() {
   const [roverRotation, setRoverRotation] = useState(null);
   const [isMapOpen, setIsMapOpen] = useState(false);
 
-  // Add target position
-  const targetPosition = { x: -540, y: 0, z: 700 };
-  // const targetPosition = { x: 0, y: 0, z: 0 };
-
   return (
     <div className="w-screen h-screen bg-amber-100">
       <KeyboardControls
@@ -230,7 +230,6 @@ export default function Home() {
         {/* Updated Direction Indicator with rover rotation */}
         <DirectionIndicator
           currentPosition={roverPosition}
-          targetPosition={targetPosition}
           roverRotation={roverRotation}
         />
 
@@ -275,21 +274,60 @@ export default function Home() {
 
 
             {/* sample 1 */}
-            <span className={`fixed text-blue-200 text-xl`}
+            <span className={`fixed text-blue-200 text-xl hover:scale-105 transition-all duration-200 font-bold`}
 
               style={{
                 // Perform arithmetic directly on the 'top' and 'left' style properties.
-                top: `${505 + 95.2}px`,
                 left: `${1210 - 3.4}px`,
+                top: `${505 + 95.2}px`,
               }}
+
+              onClick={() => { targetPosition = { x: 34, y: 0, z: -952 }; }}
+            >
+              <div className="flex items-center gap-1">
+                <MapPin />
+                Sample 1
+              </div>
+            </span>
+
+
+            {/* sample 2 3 */}
+            <span className={`fixed text-blue-200 text-xl hover:scale-105 transition-all duration-200 font-bold`}
+
+              style={{
+                // Perform arithmetic directly on the 'top' and 'left' style properties.
+                left: `${1210 - 394 / 10}px`,
+                top: `${505 + 781 / 10}px`,
+              }}
+
+              onClick={() => { targetPosition = { x: 394, y: 0, z: -781 }; }}
             >
 
-              <MapPin />
-              Sample 1
+              <div className="flex items-center gap-1">
+                <MapPin />
+                Sample 2, 3
+              </div>
+            </span>
+
+            {/* sample 4 5 */}
+            <span className={`fixed text-blue-200 text-xl hover:scale-105 transition-all duration-200 font-bold`}
+
+              style={{
+                // Perform arithmetic directly on the 'top' and 'left' style properties.
+                left: `${1210 - 473 / 10}px`,
+                top: `${505 + 597 / 10}px`,
+              }}
+
+              onClick={() => { targetPosition = { x: 473, y: 0, z: -597 }; }}
+            >
+              <div className="flex items-center gap-1">
+                <MapPin />
+                Sample 4, 5
+              </div>
             </span>
 
             {/* target icon */}
-            <span className={`fixed text-red-500 text-3xl font-bold`}
+            <span className={`fixed text-white text-3xl font-bold animate-transition transition-all duration-200`}
 
               style={{
                 // Perform arithmetic directly on the 'top' and 'left' style properties.
@@ -297,10 +335,10 @@ export default function Home() {
                 left: `${1210 - targetPosition.x / 10}px`,
               }}
             >
-              <Crosshair />
+              <MapPin />
             </span>
 
-            <Image src={'/map.webp'} height={699} width={1322} alt="map" /> 
+            <Image src={'/map.webp'} height={699} width={1322} alt="map" />
           </div>
         </div>
 
