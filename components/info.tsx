@@ -456,7 +456,9 @@ export default function Info() {
                             </p>
                           </div>
                         </div>
-                        <Link className="text-blue-400 underline text-sm" href="https://science.nasa.gov/mission/mars-2020-perseverance/" target="_blank">Learn More</Link>
+                        <Link className="text-blue-400 underline text-sm" href="https://science.nasa.gov/mission/mars-2020-perseverance/" target="_blank">Learn more about the mission</Link>
+                        <br />
+                        <Link className="text-blue-400 underline text-sm" href="https://science.nasa.gov/mission/mars-2020-perseverance/mars-rock-samples/" target="_blank">Learn more about all rock samples</Link>
 
                       </div>
                     </AccordionContent>

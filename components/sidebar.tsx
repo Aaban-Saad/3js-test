@@ -1,54 +1,3 @@
-// import { Button } from "@/components/ui/button"
-// import { Input } from "@/components/ui/input"
-// import { Label } from "@/components/ui/label"
-// import {
-//   Sheet,
-//   SheetClose,
-//   SheetContent,
-//   SheetDescription,
-//   SheetFooter,
-//   SheetHeader,
-//   SheetTitle,
-//   SheetTrigger,
-// } from "@/components/ui/sheet"
-// import { MessageCircle } from "lucide-react"
-
-// export function SheetDemo() {
-//   return (
-//     <Sheet>
-//       <SheetTrigger asChild>
-//         <Button variant="outline"><MessageCircle /> Ask anything</Button>
-//       </SheetTrigger>
-//       <SheetContent>
-//         <SheetHeader>
-//           <SheetTitle>Edit profile</SheetTitle>
-//           <SheetDescription>
-//             Make changes to your profile here. Click save when you&apos;re done.
-//           </SheetDescription>
-//         </SheetHeader>
-//         <div className="grid flex-1 auto-rows-min gap-6 px-4">
-//           <div className="grid gap-3">
-//             <Label htmlFor="sheet-demo-name">Name</Label>
-//             <Input id="sheet-demo-name" defaultValue="Pedro Duarte" />
-//           </div>
-//           <div className="grid gap-3">
-//             <Label htmlFor="sheet-demo-username">Username</Label>
-//             <Input id="sheet-demo-username" defaultValue="@peduarte" />
-//           </div>
-//         </div>
-//         <SheetFooter>
-//           <Button type="submit">Save changes</Button>
-//           <SheetClose asChild>
-//             <Button variant="outline">Close</Button>
-//           </SheetClose>
-//         </SheetFooter>
-//       </SheetContent>
-//     </Sheet>
-//   )
-// }
-
-
-
 import React, { useState } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -70,9 +19,12 @@ export function ChatBar() {
   const [messages, setMessages] = useState([
     { id: 1, text: "Hello! How can I help you today? ✨", sender: "assistant" },
   ])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleSendMessage = () => {
-    if (message.trim()) {
+  const handleSendMessage = async () => {
+    if (message.trim() && !isLoading) {
+      setIsLoading(true)
+
       // Add user message
       const newMessage = {
         id: messages.length + 1,
@@ -80,19 +32,57 @@ export function ChatBar() {
         sender: "user"
       }
 
-      setMessages(prev => [...prev, newMessage])
+      const updatedMessages = [...messages, newMessage]
+      setMessages(updatedMessages)
 
-      // Simulate assistant response
-      setTimeout(() => {
+      const currentMessage = message
+      setMessage('')
+
+      try {
+        // Get last 20 messages for context
+        const last20Messages = updatedMessages.slice(-20).map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            messages: last20Messages
+          })
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to get response')
+        }
+
+        const data = await response.json()
+
+        // Add assistant response
         const assistantResponse = {
-          id: messages.length + 2,
-          text: "Thanks for your message! This is a demo response with glass theme. ✨",
+          id: updatedMessages.length + 1,
+          text: data.message || "Sorry, I couldn't process your request.",
           sender: "assistant"
         }
-        setMessages(prev => [...prev, assistantResponse])
-      }, 1000)
 
-      setMessage('')
+        setMessages(prev => [...prev, assistantResponse])
+      } catch (error) {
+        console.error('Error getting AI response:', error)
+
+        // Add error message
+        const errorResponse = {
+          id: updatedMessages.length + 1,
+          text: "Sorry, I'm having trouble connecting right now. Please try again.",
+          sender: "assistant"
+        }
+
+        setMessages(prev => [...prev, errorResponse])
+      } finally {
+        setIsLoading(false)
+      }
     }
   }
 
@@ -111,11 +101,7 @@ export function ChatBar() {
           Ask anything
         </Button>
       </SheetTrigger>
-      <SheetContent className="flex flex-col h-full bg-background/20 backdrop-blur-3xl border-l border-white/10 shadow-2xl"
-        // onPointerDownOutside={(e) => {
-        //   e.preventDefault();
-        // }}
-      >
+      <SheetContent className="flex flex-col h-full bg-background/20 backdrop-blur-3xl border-l border-white/10 shadow-2xl">
 
         <SheetHeader className="flex-shrink-0 bg-white/5 backdrop-blur-sm border-b border-white/10">
           <SheetTitle className="text-white font-medium text-lg">Mars Assistant</SheetTitle>
@@ -138,10 +124,29 @@ export function ChatBar() {
                     : 'bg-white/10 text-white border border-white/20 shadow-lg'
                     }`}
                 >
-                  <p className="text-sm leading-relaxed">{msg.text}</p>
+                  <div className="text-sm leading-relaxed space-y-3">
+                    {msg.text.split('\n\n').map((para, i) => (
+                      <p key={i}>
+                        {para.split(/(\*\*.*?\*\*)/).map((part, j) => {
+                          if (part.startsWith('**') && part.endsWith('**')) {
+                            return <span key={j} className="font-bold">{part.slice(2, -2)}</span>;
+                          }
+                          return part;
+                        })}
+                      </p>
+                    ))}
+                  </div>
+
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-2xl px-4 py-3 backdrop-blur-md bg-white/10 text-white border border-white/20 shadow-lg">
+                  <p className="text-sm leading-relaxed">Thinking...</p>
+                </div>
+              </div>
+            )}
           </div>
         </ScrollArea>
 
@@ -154,13 +159,15 @@ export function ChatBar() {
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder:text-white/50 rounded-2xl px-4 py-3 focus:bg-white/15 focus:border-white/30 transition-all duration-200 shadow-lg"
+                disabled={isLoading}
+                className="bg-white/10 backdrop-blur-md border border-white/20 text-white placeholder:text-white/50 rounded-2xl px-4 py-3 focus:bg-white/15 focus:border-white/30 transition-all duration-200 shadow-lg disabled:opacity-50"
               />
             </div>
             <Button
               onClick={handleSendMessage}
               size="sm"
-              className="bg-blue-500/80 hover:bg-blue-500 text-white border-0 rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg shadow-blue-500/20 transition-all duration-200"
+              disabled={isLoading || !message.trim()}
+              className="bg-blue-500/80 hover:bg-blue-500 text-white border-0 rounded-2xl px-4 py-3 backdrop-blur-md shadow-lg shadow-blue-500/20 transition-all duration-200 disabled:opacity-50"
             >
               <Send size={16} />
             </Button>

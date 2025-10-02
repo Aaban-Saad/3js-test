@@ -241,6 +241,7 @@ function DirectionIndicator({ currentPosition, roverRotation }: {
         <div className="flex flex-col text-xs">
           <span className="text-green-400 font-semibold">Target Location</span>
           <span className="font-mono">{distance.toFixed(1)}m remaining</span>
+          <span>Moving 100 times faster than actual speed</span>
         </div>
 
         {/* Relative Direction */}
