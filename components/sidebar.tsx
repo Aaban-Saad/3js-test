@@ -16,7 +16,16 @@ import { ScrollArea } from './ui/scroll-area'
 
 export function ChatBar() {
   const [message, setMessage] = useState('')
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Array<{
+    id: number;
+    text: string;
+    sender: string;
+    relatedImages?: string[];
+    sources?: Array<{
+      metadata?: { title?: string; url?: string };
+      content?: string;
+    }>;
+  }>>([
     { id: 1, text: "Hello! How can I help you today? ✨", sender: "assistant" },
   ])
   const [isLoading, setIsLoading] = useState(false)
@@ -39,8 +48,8 @@ export function ChatBar() {
       setMessage('')
 
       try {
-        // Get last 20 messages for context
-        const last20Messages = updatedMessages.slice(-20).map(msg => ({
+        // Get last 2 messages for context
+        const last2Messages = updatedMessages.slice(-2).map(msg => ({
           role: msg.sender === 'user' ? 'user' : 'assistant',
           content: msg.text
         }))
@@ -51,7 +60,7 @@ export function ChatBar() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            messages: last20Messages
+            messages: last2Messages
           })
         })
 
@@ -61,11 +70,13 @@ export function ChatBar() {
 
         const data = await response.json()
 
-        // Add assistant response
+        // Add assistant response with sources and images
         const assistantResponse = {
           id: updatedMessages.length + 1,
           text: data.message || "Sorry, I couldn't process your request.",
-          sender: "assistant"
+          sender: "assistant",
+          sources: data.sources || [],
+          relatedImages: data.related_images || []
         }
 
         setMessages(prev => [...prev, assistantResponse])
@@ -86,12 +97,46 @@ export function ChatBar() {
     }
   }
 
+
   const handleKeyPress = (e: any) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
     }
   }
+
+  const formatInlineElements = (text: string) => {
+    return text.split(/(\*\*.*?\*\*|\*.*?\*|`.*?`|\[.*?\]\(.*?\)|~~.*?~~)/).map((part, j) => {
+      // Bold text **text**
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <span key={j} className="font-bold">{part.slice(2, -2)}</span>
+      }
+      // Italic text *text*
+      if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+        return <span key={j} className="italic">{part.slice(1, -1)}</span>
+      }
+      // Inline code `code`
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <code key={j} className="bg-black/30 text-green-300 px-1 py-0.5 rounded text-xs font-mono">{part.slice(1, -1)}</code>
+      }
+      // Links [text](url)
+      const linkMatch = part.match(/\[(.*?)\]\((.*?)\)/)
+      if (linkMatch) {
+        return (
+          <a key={j} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 underline">
+            {linkMatch[1]}
+          </a>
+        )
+      }
+      // Strikethrough ~~text~~
+      if (part.startsWith('~~') && part.endsWith('~~')) {
+        return <span key={j} className="line-through opacity-70">{part.slice(2, -2)}</span>
+      }
+      return part
+    })
+  }
+
 
   return (
     <Sheet>
@@ -125,18 +170,126 @@ export function ChatBar() {
                     }`}
                 >
                   <div className="text-sm leading-relaxed space-y-3">
-                    {msg.text.split('\n\n').map((para, i) => (
-                      <p key={i}>
-                        {para.split(/(\*\*.*?\*\*)/).map((part, j) => {
-                          if (part.startsWith('**') && part.endsWith('**')) {
-                            return <span key={j} className="font-bold">{part.slice(2, -2)}</span>;
-                          }
-                          return part;
-                        })}
-                      </p>
-                    ))}
-                  </div>
+                    {msg.text.split('\n\n').map((para, i) => {
+                      // Handle headers
+                      if (para.startsWith('# ')) {
+                        return <h1 key={i} className="text-lg font-bold text-white mb-2">{para.slice(2)}</h1>
+                      }
+                      if (para.startsWith('## ')) {
+                        return <h2 key={i} className="text-base font-bold text-white mb-2">{para.slice(3)}</h2>
+                      }
+                      if (para.startsWith('### ')) {
+                        return <h3 key={i} className="text-sm font-bold text-white mb-1">{para.slice(4)}</h3>
+                      }
 
+                      // Handle code blocks
+                      if (para.startsWith('```')) {
+                        const codeContent = para.replace(/```[\w]*\n?/, '').replace(/```$/, '')
+                        return (
+                          <pre key={i} className="bg-black/30 rounded-lg p-3 overflow-x-auto">
+                            <code className="text-xs text-green-300 font-mono">{codeContent}</code>
+                          </pre>
+                        )
+                      }
+
+                      // Handle lists
+                      if (para.includes('\n- ') || para.startsWith('- ')) {
+                        const listItems = para.split('\n').filter(item => item.trim().startsWith('- '))
+                        return (
+                          <ul key={i} className="list-disc list-inside space-y-1 text-white/90">
+                            {listItems.map((item, idx) => (
+                              <li key={idx} className="ml-2">{formatInlineElements(item.slice(2))}</li>
+                            ))}
+                          </ul>
+                        )
+                      }
+
+                      // Handle numbered lists
+                      if (para.match(/^\d+\. /)) {
+                        const listItems = para.split('\n').filter(item => item.match(/^\d+\. /))
+                        return (
+                          <ol key={i} className="list-decimal list-inside space-y-1 text-white/90">
+                            {listItems.map((item, idx) => (
+                              <li key={idx} className="ml-2">{formatInlineElements(item.replace(/^\d+\. /, ''))}</li>
+                            ))}
+                          </ol>
+                        )
+                      }
+
+                      // Handle blockquotes
+                      if (para.startsWith('> ')) {
+                        return (
+                          <blockquote key={i} className="border-l-4 border-blue-400 pl-4 italic text-white/80 bg-white/5 rounded-r-lg py-2">
+                            {formatInlineElements(para.slice(2))}
+                          </blockquote>
+                        )
+                      }
+
+                      // Regular paragraph with inline formatting
+                      return (
+                        <p key={i} className="text-white/90">
+                          {formatInlineElements(para)}
+                        </p>
+                      )
+                    })}
+                    
+                    {/* Show related images */}
+                    {msg.sender === 'assistant' && msg.relatedImages && msg.relatedImages.length > 0 && (
+                      <div className="mt-4 space-y-2">
+                        <h4 className="text-xs font-semibold text-white/80 mb-2">Related Images:</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {msg.relatedImages.slice(0, 4).map((imageUrl, idx) => (
+                            <img
+                              key={idx}
+                              src={imageUrl}
+                              alt={`Related image ${idx + 1}`}
+                              className="w-full h-20 object-cover rounded-lg border border-white/20 hover:border-white/40 transition-colors cursor-pointer"
+                              onClick={() => window.open(imageUrl, '_blank')}
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none'
+                              }}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Show sources */}
+                    {msg.sender === 'assistant' && msg.sources && msg.sources.length > 0 && (
+                      <div className="mt-4 pt-3 border-t border-white/20">
+                        <h4 className="text-xs font-semibold text-white/80 mb-2">Sources:</h4>
+                        <div className="space-y-2">
+                          {msg.sources.map((source, idx) => (
+                            <div key={idx} className="bg-white/5 rounded-lg p-2 border border-white/10">
+                              <div className="text-xs text-white/70">
+                                <span className="font-medium text-white/90">
+                                  {source.metadata?.title || `Source ${idx + 1}`}
+                                </span>
+                                {source.metadata?.url && (
+                                  <a
+                                    href={source.metadata.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block text-blue-400 hover:text-blue-300 underline mt-1 truncate"
+                                  >
+                                    {source.metadata.url}
+                                  </a>
+                                )}
+                                {source.content && (
+                                  <p className="mt-1 text-white/60 text-xs line-clamp-2">
+                                    {source.content.length > 100 
+                                      ? source.content.substring(0, 100) + '...' 
+                                      : source.content
+                                    }
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
