@@ -17,7 +17,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 
 // Add target position
-let targetPosition = { x: -540, y: 0, z: 700 };
+let targetPosition = { x: 88, y: 0, z: -32 };
 // const targetPosition = { x: 0, y: 0, z: 0 };
 
 

@@ -149,9 +149,10 @@ export function ChatBar() {
       <SheetContent className="flex flex-col h-full bg-background/20 backdrop-blur-3xl border-l border-white/10 shadow-2xl">
 
         <SheetHeader className="flex-shrink-0 bg-white/5 backdrop-blur-sm border-b border-white/10">
-          <SheetTitle className="text-white font-medium text-lg">Mars Assistant</SheetTitle>
+          <SheetTitle className="text-white font-medium text-lg">NASA Space Science Assistant
+          </SheetTitle>
           <SheetDescription className="text-white/70 text-sm">
-            Ask me anything about the Perseverance Rover and its findings.
+            Ask me anything about NASA space experiments and findings
           </SheetDescription>
         </SheetHeader>
 
@@ -232,7 +233,7 @@ export function ChatBar() {
                         </p>
                       )
                     })}
-                    
+
                     {/* Show related images */}
                     {msg.sender === 'assistant' && msg.relatedImages && msg.relatedImages.length > 0 && (
                       <div className="mt-4 space-y-2">
@@ -277,8 +278,8 @@ export function ChatBar() {
                                 )}
                                 {source.content && (
                                   <p className="mt-1 text-white/60 text-xs line-clamp-2">
-                                    {source.content.length > 100 
-                                      ? source.content.substring(0, 100) + '...' 
+                                    {source.content.length > 100
+                                      ? source.content.substring(0, 100) + '...'
                                       : source.content
                                     }
                                   </p>
